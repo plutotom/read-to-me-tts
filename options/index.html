@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Extension Options</title>
+    <link rel="stylesheet" href="styles/options.css" />
+  </head>
+  <body>
+    <h1>TTS Settings</h1>
+    <form id="optionsForm">
+      <label for="ttsProvider">Select TTS Provider:</label>
+      <select id="ttsProvider" name="ttsProvider">
+        <option value="azure">Microsoft Azure</option>
+        <option value="elevenlabs">ElevenLabs</option>
+        <option value="google">Google Cloud TTS</option>
+        <option value="amazon">Amazon Polly</option>
+        <option value="ibm">IBM Watson TTS</option>
+      </select>
+
+      <!-- Azure Settings -->
+      <div id="azureSettings" class="provider-settings">
+        <h2>Microsoft Azure TTS Settings</h2>
+        <label for="azureSubscriptionKey">Azure Subscription Key:</label>
+        <input
+          type="text"
+          id="azureSubscriptionKey"
+          name="azureSubscriptionKey"
+        />
+
+        <label for="azureRegion">Azure Region (e.g., eastus):</label>
+        <input type="text" id="azureRegion" name="azureRegion" />
+
+        <label for="azureVoice">Voice Name (optional):</label>
+        <input
+          type="text"
+          id="azureVoice"
+          name="azureVoice"
+          placeholder="en-US-JessaNeural"
+        />
+      </div>
+
+      <!-- ElevenLabs Settings -->
+      <div id="elevenlabsSettings" class="provider-settings">
+        <h2>ElevenLabs TTS Settings</h2>
+        <label for="elevenlabsApiKey">ElevenLabs API Key:</label>
+        <input type="text" id="elevenlabsApiKey" name="elevenlabsApiKey" />
+
+        <button type="button" id="loadElevenLabsVoices">
+          Load Voices & Models
+        </button>
+
+        <label for="elevenlabsVoiceDropdown">Select Voice:</label>
+        <select id="elevenlabsVoiceDropdown" name="elevenlabsVoiceDropdown">
+          <option value="">--Load voices--</option>
+        </select>
+
+        <label for="elevenlabsModelDropdown">Select Model:</label>
+        <select
+          id="elevenlabsModelDropdown"
+          name="elevenlabsModelDropdown"
+        ></select>
+      </div>
+
+      <button type="submit">Save</button>
+    </form>
+
+    <script type="module" src="index.js"></script>
+  </body>
+</html>

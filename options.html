@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Extension Options</title>
+    <style>
+      .provider-settings {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>TTS Settings</h1>
+    <form id="optionsForm">
+      <label for="ttsProvider">Select TTS Provider:</label><br />
+      <select id="ttsProvider" name="ttsProvider">
+        <option value="azure">Microsoft Azure</option>
+        <option value="elevenlabs">ElevenLabs</option>
+        <!-- Placeholders for additional providers -->
+        <option value="google">Google Cloud TTS</option>
+        <option value="amazon">Amazon Polly</option>
+        <option value="ibm">IBM Watson TTS</option>
+      </select>
+      <br /><br />
+
+      <!-- Azure Settings -->
+      <div id="azureSettings" class="provider-settings">
+        <h2>Microsoft Azure TTS Settings</h2>
+        <label for="azureSubscriptionKey">Azure Subscription Key:</label><br />
+        <input
+          type="text"
+          id="azureSubscriptionKey"
+          name="azureSubscriptionKey"
+        /><br /><br />
+        <label for="azureRegion">Azure Region (e.g., eastus):</label><br />
+        <input type="text" id="azureRegion" name="azureRegion" /><br /><br />
+        <label for="azureVoice">Voice Name (optional):</label><br />
+        <input
+          type="text"
+          id="azureVoice"
+          name="azureVoice"
+          placeholder="en-US-JessaNeural"
+        /><br /><br />
+      </div>
+
+      <!-- ElevenLabs Settings -->
+      <div id="elevenlabsSettings" class="provider-settings">
+        <h2>ElevenLabs TTS Settings</h2>
+        <label for="elevenlabsApiKey">ElevenLabs API Key:</label><br />
+        <input
+          type="text"
+          id="elevenlabsApiKey"
+          name="elevenlabsApiKey"
+        /><br /><br />
+
+        <!-- Button to load voices from ElevenLabs -->
+        <button type="button" id="loadElevenLabsVoices">Load Voices</button
+        ><br /><br />
+
+        <label for="elevenlabsVoiceDropdown">Select Voice:</label><br />
+        <select id="elevenlabsVoiceDropdown" name="elevenlabsVoiceDropdown">
+          <option value="">--Load voices--</option></select
+        ><br /><br />
+
+        <label for="elevenlabsModelDropdown">Select Model:</label><br />
+        <select
+          id="elevenlabsModelDropdown"
+          name="elevenlabsModelDropdown"
+        ></select
+        ><br /><br />
+      </div>
+
+      <!-- Placeholder: Additional provider settings could be added here -->
+      <p>
+        Other providers like Google Cloud TTS, Amazon Polly, and IBM Watson TTS
+        are supported in future updates.
+      </p>
+
+      <button type="submit">Save</button>
+    </form>
+
+    <script src="options.js"></script>
+  </body>
+</html>

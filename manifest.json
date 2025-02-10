@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Read to Me Chrome Extension",
+  "version": "1.2",
+  "description": "Highlight text, right-click, and have it read to you using your chosen TTS provider.",
+  "permissions": ["contextMenus", "storage", "scripting", "activeTab"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_page": "options/index.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
