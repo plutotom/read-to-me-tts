@@ -1,4 +1,8 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "ping") {
+    sendResponse({ status: "ready" });
+    return;
+  }
   if (message.action === "playAudio") {
     const { audioData, mimeType } = message;
     const blob = base64ToBlob(audioData, mimeType);

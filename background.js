@@ -22,6 +22,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
         "elevenlabsApiKey",
         "elevenlabsVoiceId",
         "elevenlabsModel",
+        "customServerEndpoint",
+        "customServerApiKey",
+        "customServerHeaders",
+        "customServerBodyParams",
+        "customServerTextKey",
       ],
       (settings) => {
         const ttsProvider = settings.ttsProvider || "azure";
@@ -76,16 +81,58 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
             })
             .then((arrayBuffer) => {
               const base64String = arrayBufferToBase64(arrayBuffer);
-              chrome.tabs.sendMessage(tab.id, {
-                action: "playAudio",
-                audioData: base64String,
-                mimeType: "audio/mpeg",
+              // Check if tab still exists before sending message
+              chrome.tabs.get(tab.id, function (currentTab) {
+                if (chrome.runtime.lastError || !currentTab) {
+                  console.error("Tab no longer exists");
+                  return;
+                }
+
+                // Verify the tab is in a state where we can inject content scripts
+                if (
+                  !currentTab.url.startsWith("chrome://") &&
+                  !currentTab.url.startsWith("edge://")
+                ) {
+                  chrome.tabs.sendMessage(
+                    tab.id,
+                    {
+                      action: "playAudio",
+                      audioData: base64String,
+                      mimeType: "audio/mpeg",
+                    },
+                    (response) => {
+                      if (chrome.runtime.lastError) {
+                        // If content script isn't ready, inject it and try again
+                        chrome.scripting.executeScript(
+                          {
+                            target: { tabId: tab.id },
+                            files: ["content.js"],
+                          },
+                          () => {
+                            // Retry sending the message after script injection
+                            chrome.tabs.sendMessage(tab.id, {
+                              action: "playAudio",
+                              audioData: base64String,
+                              mimeType: "audio/mpeg",
+                            });
+                          }
+                        );
+                      }
+                    }
+                  );
+                }
               });
             })
             .catch((error) => {
-              chrome.tabs.sendMessage(tab.id, {
-                action: "error",
-                message: error.message,
+              console.error("Error:", error);
+              // Only try to send error message if we can verify the tab exists
+              chrome.tabs.get(tab.id, function (currentTab) {
+                if (!chrome.runtime.lastError && currentTab) {
+                  chrome.tabs.sendMessage(tab.id, {
+                    action: "error",
+                    message: error.message,
+                  });
+                }
               });
             });
         } else if (ttsProvider === "elevenlabs") {
@@ -119,16 +166,184 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
             })
             .then((arrayBuffer) => {
               const base64String = arrayBufferToBase64(arrayBuffer);
-              chrome.tabs.sendMessage(tab.id, {
-                action: "playAudio",
-                audioData: base64String,
-                mimeType: "audio/mpeg",
+              // Check if tab still exists before sending message
+              chrome.tabs.get(tab.id, function (currentTab) {
+                if (chrome.runtime.lastError || !currentTab) {
+                  console.error("Tab no longer exists");
+                  return;
+                }
+
+                // Verify the tab is in a state where we can inject content scripts
+                if (
+                  !currentTab.url.startsWith("chrome://") &&
+                  !currentTab.url.startsWith("edge://")
+                ) {
+                  chrome.tabs.sendMessage(
+                    tab.id,
+                    {
+                      action: "playAudio",
+                      audioData: base64String,
+                      mimeType: "audio/mpeg",
+                    },
+                    (response) => {
+                      if (chrome.runtime.lastError) {
+                        // If content script isn't ready, inject it and try again
+                        chrome.scripting.executeScript(
+                          {
+                            target: { tabId: tab.id },
+                            files: ["content.js"],
+                          },
+                          () => {
+                            // Retry sending the message after script injection
+                            chrome.tabs.sendMessage(tab.id, {
+                              action: "playAudio",
+                              audioData: base64String,
+                              mimeType: "audio/mpeg",
+                            });
+                          }
+                        );
+                      }
+                    }
+                  );
+                }
               });
             })
             .catch((error) => {
-              chrome.tabs.sendMessage(tab.id, {
-                action: "error",
-                message: error.message,
+              console.error("Error:", error);
+              // Only try to send error message if we can verify the tab exists
+              chrome.tabs.get(tab.id, function (currentTab) {
+                if (!chrome.runtime.lastError && currentTab) {
+                  chrome.tabs.sendMessage(tab.id, {
+                    action: "error",
+                    message: error.message,
+                  });
+                }
+              });
+            });
+        } else if (ttsProvider === "customServer") {
+          const {
+            customServerEndpoint,
+            customServerHeaders = [],
+            customServerBodyParams = [],
+            customServerTextKey = "text",
+          } = settings;
+
+          if (!customServerEndpoint) {
+            chrome.tabs.sendMessage(tab.id, {
+              action: "error",
+              message: "Custom server endpoint is not configured.",
+            });
+            return;
+          }
+
+          // Build headers object
+          const headers = {
+            "Content-Type": "application/json",
+          };
+          customServerHeaders.forEach((header) => {
+            if (header.key && header.value) {
+              headers[header.key] = header.value;
+            }
+          });
+
+          // Build body object
+          const body = {};
+          customServerBodyParams.forEach((param) => {
+            if (param.key && param.value) {
+              body[param.key] = param.value.replace("{text}", text);
+            }
+          });
+          // Add the text with the custom key
+          body[customServerTextKey] = text;
+
+          console.log(headers);
+          console.log(body);
+          fetch(customServerEndpoint, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(body),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(
+                  "Custom TTS server request failed: " + response.statusText
+                );
+              }
+
+              return new Response(
+                new ReadableStream({
+                  async start(controller) {
+                    const reader = response.body.getReader();
+
+                    while (true) {
+                      const { done, value } = await reader.read();
+                      if (done) {
+                        controller.close();
+                        break;
+                      }
+                      controller.enqueue(value);
+                    }
+                  },
+                })
+              ).blob();
+            })
+            .then((blob) => {
+              return blob.arrayBuffer();
+            })
+            .then((arrayBuffer) => {
+              const base64String = arrayBufferToBase64(arrayBuffer);
+              // Check if tab still exists before sending message
+              chrome.tabs.get(tab.id, function (currentTab) {
+                if (chrome.runtime.lastError || !currentTab) {
+                  console.error("Tab no longer exists");
+                  return;
+                }
+
+                // First check if content script is already injected
+                chrome.tabs.sendMessage(
+                  tab.id,
+                  { action: "ping" },
+                  (response) => {
+                    if (chrome.runtime.lastError) {
+                      // Content script not ready, inject it first
+                      chrome.scripting.executeScript(
+                        {
+                          target: { tabId: tab.id },
+                          files: ["content.js"],
+                        },
+                        () => {
+                          // Wait a moment for the script to initialize
+                          setTimeout(() => {
+                            chrome.tabs.sendMessage(tab.id, {
+                              action: "playAudio",
+                              audioData: base64String,
+                              mimeType: "audio/mpeg",
+                            });
+                          }, 100);
+                        }
+                      );
+                    } else {
+                      // Content script is ready, send message directly
+                      chrome.tabs.sendMessage(tab.id, {
+                        action: "playAudio",
+                        audioData: base64String,
+                        mimeType: "audio/mpeg",
+                      });
+                    }
+                  }
+                );
+              });
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              // Only try to send error message if we can verify the tab exists
+              chrome.tabs.get(tab.id, function (currentTab) {
+                if (!chrome.runtime.lastError && currentTab) {
+                  chrome.tabs.sendMessage(tab.id, {
+                    action: "error",
+                    message: error.message,
+                  });
+                }
               });
             });
         } else {

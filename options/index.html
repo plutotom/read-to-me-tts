@@ -11,9 +11,10 @@
       <select id="ttsProvider" name="ttsProvider">
         <option value="azure">Microsoft Azure</option>
         <option value="elevenlabs">ElevenLabs</option>
-        <option value="google">Google Cloud TTS</option>
+        <!-- <option value="google">Google Cloud TTS</option>
         <option value="amazon">Amazon Polly</option>
-        <option value="ibm">IBM Watson TTS</option>
+        <option value="ibm">IBM Watson TTS</option> -->
+        <option value="customServer">Custom TTS Server</option>
       </select>
 
       <!-- Azure Settings -->
@@ -60,8 +61,76 @@
         ></select>
       </div>
 
+      <!-- Replace the customServerSettings div with this updated version -->
+      <div id="customServerSettings" class="provider-settings">
+        <h2>Custom TTS Server Settings</h2>
+
+        <label for="customServerEndpoint">Server Endpoint:</label>
+        <input
+          type="url"
+          id="customServerEndpoint"
+          name="customServerEndpoint"
+          placeholder="https://your-tts-server.com/tts"
+        />
+
+        <div class="headers-section">
+          <h3>Custom Headers</h3>
+          <div id="headersList">
+            <!-- Headers will be added here dynamically -->
+          </div>
+          <button type="button" id="addHeaderBtn" class="add-row-btn">
+            + Add Header
+          </button>
+        </div>
+
+        <div class="text-param-section">
+          <h3>Text Parameter</h3>
+          <label for="customServerTextKey"
+            >Parameter name for text content:</label
+          >
+          <input
+            type="text"
+            id="customServerTextKey"
+            name="customServerTextKey"
+            placeholder="e.g., text, input, content"
+            value="text"
+          />
+          <p class="help-text">
+            This is the parameter name that will be used to send the selected
+            text to your TTS server.
+          </p>
+        </div>
+
+        <div class="body-section">
+          <h3>Request Body Parameters</h3>
+          <div id="bodyParamsList">
+            <!-- Body parameters will be added here dynamically -->
+          </div>
+          <button type="button" id="addBodyParamBtn" class="add-row-btn">
+            + Add Body Parameter
+          </button>
+        </div>
+      </div>
+
       <button type="submit">Save</button>
     </form>
+
+    <footer
+      style="
+        margin-top: 20px;
+        padding: 10px;
+        text-align: center;
+        color: #666;
+        border-top: 1px solid #eee;
+      "
+    >
+      <p><span>&#169;</span> 2024 Isaiah Proctor. All rights reserved.</p>
+      <p>
+        This software is proprietary and confidential. Unauthorized copying,
+        transfer, or reproduction of the contents of this software, via any
+        medium, is strictly prohibited.
+      </p>
+    </footer>
 
     <script type="module" src="index.js"></script>
   </body>

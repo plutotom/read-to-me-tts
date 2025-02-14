@@ -9,8 +9,11 @@ export const saveSettings = async (settings) => {
 
 export const loadSettings = async (keys) => {
   return new Promise((resolve) => {
-    chrome.storage.sync.get(keys, (settings) => {
-      resolve(settings);
-    });
+    chrome.storage.sync.get(
+      [...keys, "customServerEndpoint", "customServerApiKey"],
+      (settings) => {
+        resolve(settings);
+      }
+    );
   });
 };

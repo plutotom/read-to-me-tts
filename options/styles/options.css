@@ -36,3 +36,69 @@ button {
 button:hover {
   background-color: #006cbd;
 }
+
+.help-text {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 5px;
+  margin-bottom: 15px;
+}
+
+input[type="url"] {
+  width: 100%;
+  max-width: 500px; /* Wider than regular inputs for URLs */
+}
+
+.param-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.param-row input {
+  flex: 1;
+  max-width: 200px;
+}
+
+.remove-row-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.remove-row-btn:hover {
+  background-color: #c82333;
+}
+
+.add-row-btn {
+  margin: 10px 0;
+  background-color: #28a745;
+}
+
+.add-row-btn:hover {
+  background-color: #218838;
+}
+
+.headers-section,
+.body-section {
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.text-param-section {
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f8f9fa;
+}
+
+.text-param-section input {
+  max-width: 200px;
+}

@@ -1,6 +1,7 @@
 import { initializeProviderSettings } from "./components/providerSettings.js";
 import { initializeElevenLabsSettings } from "./components/elevenlabsSettings.js";
 import { loadSettings, saveSettings } from "./services/storage.js";
+import { initializeCustomServerSettings } from "./components/customServerSettings.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const { toggleProviderSettings } = initializeProviderSettings();
@@ -12,6 +13,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     "azureRegion",
     "azureVoice",
     "elevenlabsApiKey",
+    "customServerEndpoint",
+    "customServerHeaders",
+    "customServerBodyParams",
+    "customServerTextKey",
   ]);
 
   // Initialize provider selection
@@ -37,15 +42,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("elevenlabsApiKey").value =
       settings.elevenlabsApiKey;
   }
+  if (settings.customServerEndpoint) {
+    document.getElementById("customServerEndpoint").value =
+      settings.customServerEndpoint;
+  }
 
   // Initialize ElevenLabs components
   initializeElevenLabsSettings();
+
+  // Initialize custom server settings
+  const customServerConfig = initializeCustomServerSettings();
 
   // Handle form submission
   document
     .getElementById("optionsForm")
     .addEventListener("submit", async (e) => {
       e.preventDefault();
+
+      const { headers, bodyParams, textKey } =
+        customServerConfig.getCustomServerConfig();
 
       const formData = {
         ttsProvider: document.getElementById("ttsProvider").value,
@@ -58,6 +73,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           .value,
         elevenlabsModel: document.getElementById("elevenlabsModelDropdown")
           .value,
+        customServerEndpoint: document.getElementById("customServerEndpoint")
+          .value,
+        customServerHeaders: headers,
+        customServerBodyParams: bodyParams,
+        customServerTextKey: textKey,
       };
 
       await saveSettings(formData);
