@@ -1,26 +1,36 @@
-import '@src/Options.css';
-import { useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
-import { exampleThemeStorage } from '@extension/storage';
-import { Button } from '@extension/ui';
+import { TTSSettings, useStorage, withErrorBoundary, withSuspense } from '@extension/shared';
+import { TTSSettingsStorage } from '@extension/storage';
+import AzureSettings from './providerSettings/AzureSettings';
+import ElevenLabsSettings from './providerSettings/ElevenLabsSettings';
+import CustomServerSettings from './providerSettings/CustomServerSettings';
 
 const Options = () => {
-  const theme = useStorage(exampleThemeStorage);
-  const isLight = theme === 'light';
-  const logo = isLight ? 'options/logo_horizontal.svg' : 'options/logo_horizontal_dark.svg';
-  const goGithubSite = () =>
-    chrome.tabs.create({ url: 'https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite' });
+  const settingsStorage = useStorage(TTSSettingsStorage);
 
   return (
-    <div className={`App ${isLight ? 'bg-slate-50 text-gray-900' : 'bg-gray-800 text-gray-100'}`}>
-      <button onClick={goGithubSite}>
-        <img src={chrome.runtime.getURL(logo)} className="App-logo" alt="logo" />
-      </button>
-      <p>
-        Edit <code>pages/options/src/Options.tsx</code>
-      </p>
-      <Button className="mt-4" onClick={exampleThemeStorage.toggle} theme={theme}>
-        Toggle theme
-      </Button>
+    <div className={`w-screen h-screen`}>
+      <div className="flex flex-col">
+        <label htmlFor="ttsProvider">TTS Provider</label>
+        <select
+          id="ttsProvider"
+          value={settingsStorage?.ttsProvider}
+          onChange={e =>
+            TTSSettingsStorage.set({
+              ...settingsStorage,
+              ttsProvider: e.target.value as TTSSettings['ttsProvider'],
+            })
+          }>
+          {settingsStorage?.ttsProviders?.map(provider => (
+            <option key={provider} value={provider}>
+              {provider}
+            </option>
+          ))}
+        </select>
+
+        {settingsStorage?.ttsProvider === 'azure' && <AzureSettings />}
+        {settingsStorage?.ttsProvider === 'elevenlabs' && <ElevenLabsSettings />}
+        {settingsStorage?.ttsProvider === 'customServer' && <CustomServerSettings />}
+      </div>
     </div>
   );
 };
