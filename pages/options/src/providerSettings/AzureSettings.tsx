@@ -1,7 +1,8 @@
 import { TTSSettings, useStorage } from '@extension/shared';
 import { TTSSettingsStorage } from '@extension/storage';
 import { useEffect, useState } from 'react';
-
+import { Input } from '@extension/ui/lib/components/cn/input';
+import { Label } from '@extension/ui/lib/components/cn/label';
 const AzureSettings = () => {
   const settings = useStorage(TTSSettingsStorage);
   // Local form state
@@ -39,24 +40,29 @@ const AzureSettings = () => {
 
   return (
     <div>
-      <p>{settings?.ttsProvider}</p>
+      <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl ">
+        {settings?.ttsProvider
+          ?.split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ')}
+      </h1>
       <div className="flex flex-col gap-2">
-        <label htmlFor="azureSubscriptionKey">Azure Subscription Key</label>
-        <input
+        <Label htmlFor="azureSubscriptionKey">Azure Subscription Key</Label>
+        <Input
           id="azureSubscriptionKey"
           value={tempSettings.azureSubscriptionKey}
           onChange={e => handleChange(e, 'azureSubscriptionKey')}
           onBlur={handleSave}
         />
-        <label htmlFor="azureRegion">Azure Region</label>
-        <input
+        <Label htmlFor="azureRegion">Azure Region</Label>
+        <Input
           id="azureRegion"
           value={tempSettings.azureRegion}
           onChange={e => handleChange(e, 'azureRegion')}
           onBlur={handleSave}
         />
-        <label htmlFor="azureVoice">Azure Voice</label>
-        <input
+        <Label htmlFor="azureVoice">Azure Voice</Label>
+        <Input
           id="azureVoice"
           value={tempSettings.azureVoice}
           onChange={e => handleChange(e, 'azureVoice')}

@@ -4,7 +4,7 @@ import type { BaseStorage } from '../base/types';
 import type { TTSSettings } from '../../../shared/lib/utils/shared-types';
 
 // Define the current version of the storage schema
-const CURRENT_VERSION = 4;
+const CURRENT_VERSION = 5;
 
 interface TTSSettingsWithVersion extends TTSSettings {
   _version?: number;
@@ -19,6 +19,7 @@ const defaultSettings: TTSSettingsWithVersion = {
   azureVoice: '',
   elevenlabsApiKey: '',
   elevenlabsVoiceId: '',
+  elevenlabsVoiceName: '',
   elevenlabsModel: '',
   customServerEndpoint: '',
   customServerApiKey: '',
