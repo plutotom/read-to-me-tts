@@ -10,8 +10,9 @@ interface TTSSettings {
 
   elevenlabsApiKey?: string;
   elevenlabsVoiceId?: string;
-  elevenlabsModel?: string;
   elevenlabsVoiceName?: string;
+  elevenlabsModelId?: string;
+  elevenlabsModelName?: string;
 
   customServerEndpoint?: string;
   customServerApiKey?: string;

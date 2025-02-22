@@ -5,36 +5,25 @@ import { Input } from '@extension/ui/lib/components/cn/input';
 import { Label } from '@extension/ui/lib/components/cn/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@extension/ui/lib/components/cn/select';
 import { Button } from '@extension/ui/lib/components/cn/button';
-
+import { Alert, AlertDescription, AlertTitle } from '@extension/ui/lib/components/cn/alert';
 const ElevenLabsSettings = () => {
   const settings = useStorage(TTSSettingsStorage);
-  const [tempSettings, setTempSettings] = useState<TTSSettings>(settings);
   const [voices, setVoices] = useState<ElevenLabsVoice[]>([]);
   const [models, setModels] = useState<ElevenLabsModel[]>([]);
   const [isLoadingVoices, setIsLoadingVoices] = useState(false);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
-  const handleSave = async () => {
-    await TTSSettingsStorage.set(tempSettings);
-  };
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = TTSSettingsStorage.subscribe(() => {
-      const latestSettings = TTSSettingsStorage.getSnapshot();
-      setTempSettings(latestSettings || {});
-    });
-    return () => unsubscribe();
+    if (settings.elevenlabsApiKey) {
+      loadVoices();
+      loadModels();
+    }
   }, []);
 
-  const handleChange = (value: string, key: keyof TTSSettings) => {
-    setTempSettings(prev => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
   const loadVoices = async () => {
-    if (!tempSettings.elevenlabsApiKey) {
-      alert('Please enter your ElevenLabs API Key first.');
+    if (!settings.elevenlabsApiKey) {
+      setError('Please enter your ElevenLabs API Key first.');
       return;
     }
 
@@ -42,7 +31,7 @@ const ElevenLabsSettings = () => {
     try {
       const response = await fetch('https://api.elevenlabs.io/v1/voices', {
         headers: {
-          'xi-api-key': tempSettings.elevenlabsApiKey,
+          'xi-api-key': settings.elevenlabsApiKey,
         },
       });
 
@@ -53,15 +42,15 @@ const ElevenLabsSettings = () => {
       const data = await response.json();
       setVoices(data.voices as ElevenLabsVoice[]);
     } catch (error) {
-      alert('Error loading voices and models: ' + (error as Error).message);
+      setError('Error loading voices: ' + (error as Error).message);
     } finally {
       setIsLoadingVoices(false);
     }
   };
 
   const loadModels = async () => {
-    if (!tempSettings.elevenlabsApiKey) {
-      alert('Please enter your ElevenLabs API Key first.');
+    if (!settings.elevenlabsApiKey) {
+      setError('Please enter your ElevenLabs API Key first.');
       return;
     }
 
@@ -69,7 +58,7 @@ const ElevenLabsSettings = () => {
     try {
       const response = await fetch('https://api.elevenlabs.io/v1/models', {
         headers: {
-          'xi-api-key': tempSettings.elevenlabsApiKey,
+          'xi-api-key': settings.elevenlabsApiKey,
         },
       });
 
@@ -80,7 +69,7 @@ const ElevenLabsSettings = () => {
       const data = await response.json();
       setModels(data as ElevenLabsModel[]);
     } catch (error) {
-      alert('Error loading models: ' + (error as Error).message);
+      setError('Error loading models: ' + (error as Error).message);
     } finally {
       setIsLoadingModels(false);
     }
@@ -90,31 +79,44 @@ const ElevenLabsSettings = () => {
     <div>
       <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">ElevenLabs</h1>
       <div className="flex flex-col gap-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <div>
           <Label htmlFor="elevenlabsApiKey">API Key</Label>
           <Input
             id="elevenlabsApiKey"
-            value={tempSettings.elevenlabsApiKey}
-            onChange={e => handleChange(e.target.value, 'elevenlabsApiKey')}
-            onBlur={handleSave}
+            value={settings.elevenlabsApiKey}
+            onChange={e => {
+              TTSSettingsStorage.set(prev => ({
+                ...prev,
+                elevenlabsApiKey: e.target.value,
+              }));
+            }}
             type="password"
           />
         </div>
-
-        <Button onClick={loadVoices} disabled={isLoadingVoices || !tempSettings.elevenlabsApiKey}>
+        <Button onClick={loadVoices} disabled={isLoadingVoices || !settings.elevenlabsApiKey}>
           {isLoadingVoices ? 'Loading...' : 'Load Voices'}
         </Button>
-        <Button onClick={loadModels} disabled={isLoadingModels || !tempSettings.elevenlabsApiKey}>
+        <Button onClick={loadModels} disabled={isLoadingModels || !settings.elevenlabsApiKey}>
           {isLoadingModels ? 'Loading...' : 'Load Models'}
         </Button>
 
         <div>
           <Label htmlFor="elevenlabsVoiceId">Voice</Label>
           <Select
-            value={tempSettings.elevenlabsVoiceId}
-            onValueChange={value => {
-              handleChange(value, 'elevenlabsVoiceId');
-              handleSave();
+            value={settings.elevenlabsVoiceId}
+            onValueChange={voiceId => {
+              const selectedVoice = voices.find(v => v.voice_id === voiceId);
+              TTSSettingsStorage.set({
+                ...settings,
+                elevenlabsVoiceId: voiceId,
+                elevenlabsVoiceName: selectedVoice?.name,
+              });
             }}>
             <SelectTrigger>
               <SelectValue placeholder="Select voice" />
@@ -130,12 +132,16 @@ const ElevenLabsSettings = () => {
         </div>
 
         <div>
-          <Label htmlFor="elevenlabsModel">Model</Label>
+          <Label htmlFor="elevenlabsModelId">Model</Label>
           <Select
-            value={tempSettings.elevenlabsModel}
-            onValueChange={value => {
-              handleChange(value, 'elevenlabsModel');
-              handleSave();
+            value={settings.elevenlabsModelId}
+            onValueChange={modelId => {
+              const selectedModel = models.find(m => m.model_id === modelId);
+              TTSSettingsStorage.set({
+                ...settings,
+                elevenlabsModelId: modelId,
+                elevenlabsModelName: selectedModel?.name,
+              });
             }}>
             <SelectTrigger>
               <SelectValue placeholder="Select model" />
